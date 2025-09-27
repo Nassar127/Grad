@@ -1,0 +1,23 @@
+# Dependencies
+/node_modules
+
+# Compiled TypeScript output
+/dist
+
+# Environment variables
+.env
+
+# Prisma
+/prisma/generated
+
+# Log files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor directories and files
+.vscode/*
+!.vscode/settings.json
+.idea
+*.suo

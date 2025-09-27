@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3D Brain Viewer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      font-family: 'Inter', sans-serif;
+      background: #f9fafb;
+    }
+
+    #unity-container {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+    }
+
+    #unity-canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    #loading-indicator {
+      position: absolute;
+      inset: 0;
+      background-color: rgba(255, 255, 255, 0.95);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #e5e7eb;
+      border-top: 4px solid #3b82f6;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 1rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-bar {
+      width: 300px;
+      height: 6px;
+      background-color: #e5e7eb;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 1rem;
+    }
+
+    .loading-bar-fill {
+      height: 100%;
+      background-color: #3b82f6;
+      width: 0%;
+      transition: width 0.3s ease-in-out;
+    }
+  </style>
+</head>
+<body>
+  <div id="unity-container">
+    <canvas id="unity-canvas"></canvas>
+    <div id="loading-indicator">
+      <div class="loading-spinner"></div>
+      <div class="text-gray-800 text-lg font-medium">Loading Brain Model...</div>
+      <div class="loading-bar mt-3">
+        <div id="loading-bar-fill" class="loading-bar-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Patch Unity bug (optional but safe)
+    HTMLCanvasElement.prototype.getContextSafariWebGL2Fixed = function (...args) {
+      return this.getContext(...args);
+    };
+
+    const buildUrl = "UnityBuild"; // Or "Build" depending on your folder
+    const loaderUrl = buildUrl + "/build-nocompress.loader.js";
+    const config = {
+      dataUrl: buildUrl + "/build-nocompress.data",
+      frameworkUrl: buildUrl + "/build-nocompress.framework.js",
+      codeUrl: buildUrl + "/build-nocompress.wasm",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "AnatomyLab",
+      productName: "3D Brain Viewer",
+      productVersion: "1.0",
+    };
+
+    const canvas = document.getElementById("unity-canvas");
+    const loadingBarFill = document.getElementById("loading-bar-fill");
+    const loadingIndicator = document.getElementById("loading-indicator");
+
+    const script = document.createElement("script");
+    script.src = loaderUrl;
+    script.onload = () => {
+      createUnityInstance(canvas, config, (progress) => {
+        loadingBarFill.style.width = (progress * 100) + "%";
+      }).then((instance) => {
+        setTimeout(() => {
+          loadingIndicator.style.opacity = "0";
+          loadingIndicator.style.transition = "opacity 0.5s ease-out";
+          setTimeout(() => (loadingIndicator.style.display = "none"), 500);
+        }, 300);
+      }).catch((err) => {
+        console.error(err);
+        loadingIndicator.innerHTML = `<div class="text-red-600 text-center font-semibold">❌ Failed to load Unity</div>`;
+      });
+    };
+    document.body.appendChild(script);
+  </script>
+</body>
+</html>
