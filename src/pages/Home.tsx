@@ -8,7 +8,6 @@ import { Link } from '../components/ui/Link';
 const Home: React.FC = () => {
   return (
     <div>
-      {/* Hero Section */}
       <section className="relative h-screen flex items-center">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-900 to-blue-700 z-0"></div>
         <div className="absolute inset-0 bg-[url('https://images.pexels.com/photos/3825586/pexels-photo-3825586.jpeg?auto=compress&cs=tinysrgb&w=1600')] bg-cover bg-center opacity-20 z-0"></div>
@@ -50,7 +49,6 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Features Overview */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -71,7 +69,7 @@ const Home: React.FC = () => {
                   Explore the human brain in interactive 3D. Rotate, zoom, and identify different regions with detailed annotations.
                 </p>
                 <Link 
-                  href="/features#brain" 
+                  to="/features#brain" 
                   className="inline-flex items-center text-blue-600 font-medium hover:text-blue-800"
                 >
                   Explore Brain Model <ArrowRight className="ml-2 h-4 w-4" />
@@ -89,7 +87,7 @@ const Home: React.FC = () => {
                   Visualize the human heart in detailed 3D. Examine chambers, valves, and blood flow with interactive features.
                 </p>
                 <Link 
-                  href="/features#heart" 
+                  to="/features#heart" 
                   className="inline-flex items-center text-blue-600 font-medium hover:text-blue-800"
                 >
                   Explore Heart Model <ArrowRight className="ml-2 h-4 w-4" />
@@ -107,7 +105,7 @@ const Home: React.FC = () => {
                   Get instant answers to medical questions with our AI-powered chatbot trained on medical literature.
                 </p>
                 <Link 
-                  href="/features#chatbot" 
+                  to="/features#chatbot" 
                   className="inline-flex items-center text-blue-600 font-medium hover:text-blue-800"
                 >
                   Try Medical AI <ArrowRight className="ml-2 h-4 w-4" />
@@ -118,7 +116,6 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Why Choose Us */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -195,7 +192,6 @@ const Home: React.FC = () => {
         </div>
       </section>
       
-      {/* CTA Section */}
       <section className="py-16 bg-blue-700">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-6">Ready to Transform Your Medical Education?</h2>

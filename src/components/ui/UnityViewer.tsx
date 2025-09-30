@@ -1,4 +1,6 @@
-const UnityViewer = () => {
+import React from 'react';
+
+const UnityViewer: React.FC = () => {
   return (
     <div className="w-full h-[500px] rounded-lg shadow-lg overflow-hidden">
       <iframe

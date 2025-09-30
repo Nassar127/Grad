@@ -1,10 +1,10 @@
-import UnityViewer from "../components/ui/heartviewer";
+import React from 'react';
+import HeartViewer from "../components/ui/HeartViewer";
 
-
-const HeartModel =() => {
+const HeartModel: React.FC = () => {
   return (
     <div className="p-4">
-      <UnityViewer />
+      <HeartViewer />
     </div>
   );
 };

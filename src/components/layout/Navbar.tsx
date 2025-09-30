@@ -1,5 +1,3 @@
-// src/components/layout/Navbar.tsx
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, X, BarChart3 } from 'lucide-react';
@@ -42,7 +40,7 @@ const Navbar: React.FC = () => {
   const handleLogout = async () => {
     await api.logout();
     setUser(null);
-    navigate('/login');
+    navigate('/');
   };
 
   return (
@@ -54,7 +52,7 @@ const Navbar: React.FC = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
-            <Link to="/" className="flex items-center gap-2 font-bold text-xl"> {/* 👈 Changed href to to */}
+            <Link to="/" className="flex items-center gap-2 font-bold text-xl">
               <BarChart3 className="w-6 h-6" />
               <span>MediLearn</span>
             </Link>
@@ -63,22 +61,22 @@ const Navbar: React.FC = () => {
           <nav className="hidden md:block">
             <ul className="flex space-x-6">
               <li>
-                <Link to="/" className="hover:text-blue-400 transition-colors"> {/* 👈 Changed href to to */}
+                <Link to="/" className="hover:text-blue-400 transition-colors">
                   Home
                 </Link>
               </li>
               <li>
-                <Link to="/products" className="hover:text-blue-400 transition-colors"> {/* 👈 Changed href to to */}
+                <Link to="/products" className="hover:text-blue-400 transition-colors">
                   Our Products
                 </Link>
               </li>
               <li>
-                <Link to="/features" className="hover:text-blue-400 transition-colors"> {/* 👈 Changed href to to */}
+                <Link to="/features" className="hover:text-blue-400 transition-colors">
                   Try Our Features
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="hover:text-blue-400 transition-colors"> {/* 👈 Changed href to to */}
+                <Link to="/contact" className="hover:text-blue-400 transition-colors">
                   Contact
                 </Link>
               </li>
@@ -88,7 +86,7 @@ const Navbar: React.FC = () => {
                     Logout
                   </button>
                 ) : (
-                  <Link to="/login" className="hover:text-blue-400 transition-colors"> {/* 👈 Changed href to to */}
+                  <Link to="/login" className="hover:text-blue-400 transition-colors">
                     Login
                   </Link>
                 )}
@@ -104,36 +102,42 @@ const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile menu */}
       <div className={`md:hidden ${isOpen ? 'block' : 'hidden'}`}>
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white/95 backdrop-blur-sm shadow-lg text-blue-900">
           <Link
-            to="/" // 👈 Changed href to to
+            to="/"
             className="block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-100 transition-colors"
             onClick={() => setIsOpen(false)}
           >
             Home
           </Link>
           <Link
-            to="/products" // 👈 Changed href to to
+            to="/products"
             className="block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-100 transition-colors"
             onClick={() => setIsOpen(false)}
           >
             Our Products
           </Link>
           <Link
-            to="/features" // 👈 Changed href to to
+            to="/features"
             className="block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-100 transition-colors"
             onClick={() => setIsOpen(false)}
           >
             Try Our Features
           </Link>
           <Link
-            to="/contact" // 👈 Changed href to to
+            to="/contact"
             className="block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-100 transition-colors"
             onClick={() => setIsOpen(false)}
           >
             Contact
+          </Link>
+          <Link
+            to="/login"
+            className="block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-100 transition-colors"
+            onClick={() => setIsOpen(false)}
+          >
+            Login
           </Link>
         </div>
       </div>

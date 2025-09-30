@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Loader2, MessageSquare, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { marked } from 'marked';
-import { api } from '../lib/api'; // 👈 Import your main API helper
-import { userStore } from '../lib/auth'; // 👈 Import user store
+import { api } from '../lib/api';
+import { userStore } from '../lib/auth';
 import { Link } from '../components/ui/Link';
 
 interface Message {
@@ -18,7 +18,7 @@ interface AiChatbotProps {
 }
 
 const formatMessage = (text: string) => {
-  return marked.parse(text); // Markdown → HTML
+  return marked.parse(text);
 };
 
 const AiChatbot: React.FC<AiChatbotProps> = ({ className = '' }) => {
@@ -35,10 +35,8 @@ const AiChatbot: React.FC<AiChatbotProps> = ({ className = '' }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // --- New state for managing authenticated chat ---
   const [chatId, setChatId] = useState<number | null>(null);
   const user = userStore.get();
-  // ------------------------------------------------
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -56,7 +54,6 @@ const AiChatbot: React.FC<AiChatbotProps> = ({ className = '' }) => {
     setInputValue(e.target.value);
   };
 
-  // --- Updated handleSubmit to use the main API ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const text = inputValue.trim();
@@ -65,7 +62,6 @@ const AiChatbot: React.FC<AiChatbotProps> = ({ className = '' }) => {
     setIsLoading(true);
     const optimisticId = Date.now().toString();
 
-    // Optimistically add user message to the UI
     setMessages(prev => [
       ...prev,
       { id: optimisticId, text, sender: 'user', timestamp: new Date() },
@@ -75,17 +71,14 @@ const AiChatbot: React.FC<AiChatbotProps> = ({ className = '' }) => {
     try {
       let currentChatId = chatId;
 
-      // 1. If there's no chat session, create one first
       if (!currentChatId) {
         const newChat = await api.createChat('New Web Chat');
         currentChatId = newChat.id;
         setChatId(newChat.id);
       }
 
-      // 2. Send the message to the main server endpoint
       const response = await api.sendMessage(currentChatId, text);
 
-      // 3. Add the real bot's response to the UI
       const botMessage: Message = {
         id: response.botMessage.id.toString(),
         text: response.botMessage.text,
@@ -109,7 +102,6 @@ const AiChatbot: React.FC<AiChatbotProps> = ({ className = '' }) => {
     }
   };
 
-  // --- Display a login prompt if the user is not authenticated ---
   if (!user) {
     return (
       <div
@@ -126,7 +118,6 @@ const AiChatbot: React.FC<AiChatbotProps> = ({ className = '' }) => {
       </div>
     );
   }
-  // -----------------------------------------------------------------
 
   return (
     <div
@@ -135,7 +126,6 @@ const AiChatbot: React.FC<AiChatbotProps> = ({ className = '' }) => {
       } bg-white rounded-lg shadow-md ${className}`}
       style={{ overflow: 'hidden' }}
     >
-      {/* Header */}
       <div className="bg-blue-600 text-white p-4 flex items-center">
         <MessageSquare className="h-6 w-6 mr-2" />
         <h3 className="font-semibold flex-1">Medical AI Assistant</h3>
@@ -144,7 +134,6 @@ const AiChatbot: React.FC<AiChatbotProps> = ({ className = '' }) => {
         </button>
       </div>
 
-      {/* Scrollable Messages */}
       <div className="flex-1 overflow-y-auto p-4 bg-gray-50" style={{ minHeight: 0 }}>
         {messages.map(message => (
           <div key={message.id} className={`mb-4 flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -163,7 +152,6 @@ const AiChatbot: React.FC<AiChatbotProps> = ({ className = '' }) => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Form */}
       <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200 bg-white">
         <div className="flex gap-2">
           <input
