@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import { userStore } from '../lib/auth';
 
 const Login: React.FC = () => {
-  const navigate = useNavigate();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [name, setName]   = useState('');
@@ -22,7 +20,7 @@ const Login: React.FC = () => {
       } else {
         await api.signup(email.trim(), password, name.trim() || undefined);
       }
-      navigate('/'); 
+      window.location.href = '/'; 
     } catch (err: any) {
       setError(err.message?.replace(/[\r\n]+/g, ' ') || 'Request failed');
     } finally {

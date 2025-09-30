@@ -1,6 +1,6 @@
 import React from 'react';
 import { BarChart3, Mail, Phone, MapPin, Facebook, Linkedin, Instagram } from 'lucide-react';
-import { Link } from '../ui/Link';
+import { Link } from 'react-router-dom';
 
 const Footer: React.FC = () => {
   return (
@@ -8,7 +8,7 @@ const Footer: React.FC = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <Link href="/" className="flex items-center gap-2 text-white mb-4">
+            <Link to="/" className="flex items-center gap-2 text-white mb-4">
               <BarChart3 className="w-6 h-6" />
               <span className="font-bold text-xl">MediLearn</span>
             </Link>
@@ -32,22 +32,22 @@ const Footer: React.FC = () => {
             <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/" className="text-blue-200 hover:text-white transition-colors">
+                <Link to="/" className="text-blue-200 hover:text-white transition-colors">
                   Home
                 </Link>
               </li>
               <li>
-                <Link href="/products" className="text-blue-200 hover:text-white transition-colors">
+                <Link to="/products" className="text-blue-200 hover:text-white transition-colors">
                   Our Products
                 </Link>
               </li>
               <li>
-                <Link href="/features" className="text-blue-200 hover:text-white transition-colors">
+                <Link to="/features" className="text-blue-200 hover:text-white transition-colors">
                   Try Our Features
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="text-blue-200 hover:text-white transition-colors">
+                <Link to="/contact" className="text-blue-200 hover:text-white transition-colors">
                   Contact
                 </Link>
               </li>
@@ -58,22 +58,22 @@ const Footer: React.FC = () => {
             <h3 className="text-lg font-semibold mb-4">Our Features</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/features#brain" className="text-blue-200 hover:text-white transition-colors">
+                <Link to="/features#brain" className="text-blue-200 hover:text-white transition-colors">
                   3D Brain Model
                 </Link>
               </li>
               <li>
-                <Link href="/features#heart" className="text-blue-200 hover:text-white transition-colors">
+                <Link to="/features#heart" className="text-blue-200 hover:text-white transition-colors">
                   3D Heart Model
                 </Link>
               </li>
               <li>
-                <Link href="/features#chatbot" className="text-blue-200 hover:text-white transition-colors">
+                <Link to="/features#chatbot" className="text-blue-200 hover:text-white transition-colors">
                   Medical AI Chatbot
                 </Link>
               </li>
               <li>
-                <Link href="/features" className="text-blue-200 hover:text-white transition-colors">
+                <Link to="/features" className="text-blue-200 hover:text-white transition-colors">
                   All Features
                 </Link>
               </li>

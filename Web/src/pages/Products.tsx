@@ -23,7 +23,7 @@ const Products: React.FC = () => {
       ],
       recommended: false,
       cta: 'Try Web Demo',
-      link: '/features' // ✅ Features page
+      link: '/features'
     },
     {
       id: 2,
@@ -42,7 +42,7 @@ const Products: React.FC = () => {
       recommended: true,
       cta: 'Launch VR App',
       link: 'https://maiegypt.my.canva.site/coming-soooon',
-      external: true // 👈 Add this line
+      external: true
     },    
     {
       id: 3,
@@ -55,19 +55,17 @@ const Products: React.FC = () => {
         'iOS and Android Support',
         'Contextual Study Recommendations',
         'Medical Condition Explanations',
-        'Offline Mode (Coming Soon)',
         'Built for Mobility and Speed',
       ],
       recommended: false,
       cta: 'Download Now',
-      link: '/DownloadAppPage' // ✅ Mobile app page
+      link: '/DownloadAppPage'
     }
  
   ];
 
   return (
     <div>
-      {/* Header Section */}
       <section className="pt-20 py-20 bg-gradient-to-r from-blue-900 to-blue-700 text-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl font-bold mb-6">Our Products</h1>
@@ -77,7 +75,6 @@ const Products: React.FC = () => {
         </div>
       </section>
       
-      {/* Pricing Plans */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -129,10 +126,9 @@ const Products: React.FC = () => {
                     icon={<ArrowRight size={16} />}
                     onClick={() => {
                       if (product.external) {
-                        window.open(product.link, '_blank'); // ✅ Open external link
+                        window.open(product.link, '_blank');
                       } else {
-                        window.history.pushState({}, '', product.link); // ✅ Internal link
-                        window.dispatchEvent(new CustomEvent('locationchange', { detail: product.link }));
+                        navigate(product.link);
                       }
                     }}
                   >
@@ -146,115 +142,110 @@ const Products: React.FC = () => {
         </div>
       </section>
       
-      <section className="py-20 bg-white">
-  <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-    <div className="text-center mb-16">
-      <h2 className="text-3xl font-bold text-blue-900 mb-4">Product Details</h2>
-      <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-        Explore the immersive, intelligent, and accessible experiences offered across our platform.
-      </p>
-    </div>
+    <section className="py-20 bg-white">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl font-bold text-blue-900 mb-4">Product Details</h2>
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            Explore the immersive, intelligent, and accessible experiences offered across our platform.
+          </p>
+        </div>
 
-    {/* VR App */}
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-20">
-      <div>
-        <h3 className="text-2xl font-bold text-blue-900 mb-4">MediLearn VR Experience</h3>
-        <p className="text-gray-600 mb-6">
-          Dive into a new dimension of anatomy learning. MediLearn VR enables full-scale disassembly of human organs in an interactive VR environment, complete with AI-powered voice explanations and intuitive controls.
-        </p>
-        <ul className="space-y-3">
-          <li className="flex items-start">
-            <Check className="h-5 w-5 text-blue-600 mt-1" />
-            <span className="ml-3 text-gray-700">Interactive organ disassembly and assembly</span>
-          </li>
-          <li className="flex items-start">
-            <Check className="h-5 w-5 text-blue-600 mt-1" />
-            <span className="ml-3 text-gray-700">Real-time highlighting and educational overlays</span>
-          </li>
-          <li className="flex items-start">
-            <Check className="h-5 w-5 text-blue-600 mt-1" />
-            <span className="ml-3 text-gray-700">AI tutor integrated with Meta Quest controls</span>
-          </li>
-        </ul>
-      </div>
-      <div className="relative rounded-lg overflow-hidden shadow-lg">
-        <iframe
-          className="w-full h-64 md:h-96 rounded-lg"
-          src="https://www.youtube.com/embed/E-hqM-S5SSo?si=qy8iIecaVSDYkjjb"
-          title="VR App Teaser"
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-        ></iframe>
-      </div>
-    </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-20">
+          <div>
+            <h3 className="text-2xl font-bold text-blue-900 mb-4">MediLearn VR Experience</h3>
+            <p className="text-gray-600 mb-6">
+              Dive into a new dimension of anatomy learning. MediLearn VR enables full-scale disassembly of human organs in an interactive VR environment, complete with AI-powered voice explanations and intuitive controls.
+            </p>
+            <ul className="space-y-3">
+              <li className="flex items-start">
+                <Check className="h-5 w-5 text-blue-600 mt-1" />
+                <span className="ml-3 text-gray-700">Interactive organ disassembly and assembly</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="h-5 w-5 text-blue-600 mt-1" />
+                <span className="ml-3 text-gray-700">Real-time highlighting and educational overlays</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="h-5 w-5 text-blue-600 mt-1" />
+                <span className="ml-3 text-gray-700">AI tutor integrated with Meta Quest controls</span>
+              </li>
+            </ul>
+          </div>
+          <div className="relative rounded-lg overflow-hidden shadow-lg">
+            <iframe
+              className="w-full h-64 md:h-96 rounded-lg"
+              src="https://www.youtube.com/embed/E-hqM-S5SSo?si=qy8iIecaVSDYkjjb"
+              title="VR App Teaser"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </div>
+        </div>
 
-    {/* Mobile App */}
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-20">
-      <div className="order-2 lg:order-1 relative">
-        <img 
-          src="/assets/Purple App Phone Mockup Sales Marketing Presentation.png"
-          alt="AI Chatbot App" 
-          className="rounded-lg shadow-lg relative z-10"
-        />
-      </div>
-      <div className="order-1 lg:order-2">
-        <h3 className="text-2xl font-bold text-blue-900 mb-4">MediLearn AI Mobile</h3>
-        <p className="text-gray-600 mb-6">
-          Never study alone again. MediLearn AI Mobile delivers smart answers to your medical questions anytime, anywhere — built for mobile-first learning with offline-ready tools.
-        </p>
-        <ul className="space-y-3">
-          <li className="flex items-start">
-            <Check className="h-5 w-5 text-blue-600 mt-1" />
-            <span className="ml-3 text-gray-700">AI Chatbot for clinical & academic topics</span>
-          </li>
-          <li className="flex items-start">
-            <Check className="h-5 w-5 text-blue-600 mt-1" />
-            <span className="ml-3 text-gray-700">Native iOS and Android compatibility</span>
-          </li>
-          <li className="flex items-start">
-            <Check className="h-5 w-5 text-blue-600 mt-1" />
-            <span className="ml-3 text-gray-700">Personalized study recommendations</span>
-          </li>
-        </ul>
-      </div>
-    </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-20">
+          <div className="order-2 lg:order-1 relative">
+            <img 
+              src="/assets/Purple App Phone Mockup Sales Marketing Presentation.png"
+              alt="AI Chatbot App" 
+              className="rounded-lg shadow-lg relative z-10"
+            />
+          </div>
+          <div className="order-1 lg:order-2">
+            <h3 className="text-2xl font-bold text-blue-900 mb-4">MediLearn AI Mobile</h3>
+            <p className="text-gray-600 mb-6">
+              Never study alone again. MediLearn AI Mobile delivers smart answers to your medical questions anytime, anywhere — built for mobile-first learning with offline-ready tools.
+            </p>
+            <ul className="space-y-3">
+              <li className="flex items-start">
+                <Check className="h-5 w-5 text-blue-600 mt-1" />
+                <span className="ml-3 text-gray-700">AI Chatbot for clinical & academic topics</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="h-5 w-5 text-blue-600 mt-1" />
+                <span className="ml-3 text-gray-700">Native iOS and Android compatibility</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="h-5 w-5 text-blue-600 mt-1" />
+                <span className="ml-3 text-gray-700">Personalized study recommendations</span>
+              </li>
+            </ul>
+          </div>
+        </div>
 
-    {/* Web Demo */}
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-      <div>
-        <h3 className="text-2xl font-bold text-blue-900 mb-4">MediLearn Web Demo</h3>
-        <p className="text-gray-600 mb-6">
-          Explore our interactive medical tools instantly through your browser. No installs, no delays — just hands-on anatomical learning and AI-powered assistance.
-        </p>
-        <ul className="space-y-3">
-          <li className="flex items-start">
-            <Check className="h-5 w-5 text-blue-600 mt-1" />
-            <span className="ml-3 text-gray-700">3D Brain and Heart model explorer</span>
-          </li>
-          <li className="flex items-start">
-            <Check className="h-5 w-5 text-blue-600 mt-1" />
-            <span className="ml-3 text-gray-700">Zoom, rotate, hover labels and panels</span>
-          </li>
-          <li className="flex items-start">
-            <Check className="h-5 w-5 text-blue-600 mt-1" />
-            <span className="ml-3 text-gray-700">Instant access with no login or setup</span>
-          </li>
-        </ul>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <h3 className="text-2xl font-bold text-blue-900 mb-4">MediLearn Web Demo</h3>
+            <p className="text-gray-600 mb-6">
+              Explore our interactive medical tools instantly through your browser. No installs, no delays — just hands-on anatomical learning and AI-powered assistance.
+            </p>
+            <ul className="space-y-3">
+              <li className="flex items-start">
+                <Check className="h-5 w-5 text-blue-600 mt-1" />
+                <span className="ml-3 text-gray-700">3D Brain and Heart model explorer</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="h-5 w-5 text-blue-600 mt-1" />
+                <span className="ml-3 text-gray-700">Zoom, rotate, hover labels and panels</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="h-5 w-5 text-blue-600 mt-1" />
+                <span className="ml-3 text-gray-700">Instant access with no login or setup</span>
+              </li>
+            </ul>
+          </div>
+          <div className="relative">
+            <img 
+              src="/assets/web-demo-preview.png" 
+              alt="Web Demo" 
+              className="rounded-lg shadow-lg"
+            />
+          </div>
+        </div>
       </div>
-      <div className="relative">
-        <img 
-          src="/assets/web-demo-preview.png" 
-          alt="Web Demo" 
-          className="rounded-lg shadow-lg"
-        />
-      </div>
-    </div>
-  </div>
-</section>
+    </section>
 
-
-      {/* CTA Section */}
       <section className="py-16 bg-blue-900 text-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold mb-6">Ready to Transform Medical Education?</h2>
@@ -266,8 +257,7 @@ const Products: React.FC = () => {
               size="lg" 
               className="border-white text-white hover:bg-white hover:text-blue-700"
               onClick={() => {
-                window.history.pushState({}, '', '/features');
-                window.dispatchEvent(new CustomEvent('locationchange', { detail: '/features' }));
+                navigate('/features');
               }}
             >
               Try Our Features
@@ -277,8 +267,7 @@ const Products: React.FC = () => {
               size="lg"
               className="border-white text-white hover:bg-blue-800"
               onClick={() => {
-                window.history.pushState({}, '', '/contact');
-                window.dispatchEvent(new CustomEvent('locationchange', { detail: '/contact' }));
+                navigate('/contact');
               }}
             >
               Contact Sales
