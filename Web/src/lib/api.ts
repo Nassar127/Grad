@@ -1,3 +1,5 @@
+// lib/api.ts
+
 import { tokenStore, userStore, type LoggedUser } from './auth';
 
 const API = import.meta.env.VITE_API_URL ?? 'http://localhost:4000';
@@ -10,7 +12,6 @@ async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {
 
   let res = await fetch(`${API}${path}`, { ...opts, headers });
 
-  // attempt refresh on 401 (if we have a refresh token)
   if (res.status === 401 && tokenStore.refresh) {
     const r = await fetch(`${API}/auth/refresh`, {
       method: 'POST',
@@ -35,26 +36,29 @@ async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {
 }
 
 export const api = {
-  async signup(email: string, password: string, name?: string) {
+  // ✅ MODIFIED: Added phone to signup parameters
+  async signup(email: string, phone: string, password: string, name?: string) {
     const data = await request<{ user: LoggedUser; accessToken: string; refreshToken: string }>(
       '/auth/signup',
-      { method: 'POST', body: JSON.stringify({ email, password, name }) }
+      { method: 'POST', body: JSON.stringify({ email, phone, password, name }) }
     );
     tokenStore.set(data.accessToken, data.refreshToken);
     userStore.set(data.user);
     return data.user;
   },
 
-  async login(email: string, password: string) {
+  // ✅ MODIFIED: Changed 'email' to a generic 'login' identifier
+  async login(login: string, password: string) {
     const data = await request<{ user: LoggedUser; accessToken: string; refreshToken: string }>(
       '/auth/login',
-      { method: 'POST', body: JSON.stringify({ email, password }) }
+      { method: 'POST', body: JSON.stringify({ login, password }) }
     );
     tokenStore.set(data.accessToken, data.refreshToken);
     userStore.set(data.user);
     return data.user;
   },
 
+  // ... rest of the file is unchanged ...
   async me() {
     const data = await request<{ user: LoggedUser }>('/auth/me');
     userStore.set(data.user);

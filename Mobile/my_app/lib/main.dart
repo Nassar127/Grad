@@ -1,9 +1,13 @@
+// lib/main.dart
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart'; // 1. Import provider
 import 'core/api.dart';
 import 'features/auth/auth_service.dart';
+import 'features/settings_provider.dart'; // 2. Import your new provider
 import 'screens/login_screen.dart';
-import 'screens/main_scaffold.dart';
+import 'screens/chat_screen.dart';
 
 final authService = AuthService();
 
@@ -11,40 +15,28 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Api.instance.init();
   await authService.init();
-  runApp(const MyApp());
+  // 3. Wrap your app in the provider
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => SettingsProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget { // 4. MyApp can now be stateless
   const MyApp({super.key});
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  late final GoRouter _router;
-  ThemeMode _themeMode = ThemeMode.system; // ✅ State for managing theme
-
-  void _setThemeMode(ThemeMode mode) {
-    setState(() {
-      _themeMode = mode;
-    });
-  }
 
   @override
-  void initState() {
-    super.initState();
-    _router = GoRouter(
+  Widget build(BuildContext context) {
+    // 5. Access the provider to get the theme
+    final settingsProvider = Provider.of<SettingsProvider>(context);
+
+    final router = GoRouter(
       refreshListenable: authService.authNotifier,
-      initialLocation: '/login',
+      initialLocation: '/',
       routes: [
-        // ✅ Pass the theme state down to the main scaffold
-        GoRoute(
-          path: '/',
-          builder: (_, __) => MainScaffold(
-            themeMode: _themeMode,
-            onThemeChanged: _setThemeMode,
-          ),
-        ),
+        GoRoute(path: '/', builder: (_, __) => const ChatScreen()),
         GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
       ],
       redirect: (ctx, state) {
@@ -55,22 +47,36 @@ class _MyAppState extends State<MyApp> {
         return null;
       },
     );
-  }
 
-  @override
-  Widget build(BuildContext context) {
+    final lightTheme = ThemeData(
+      colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue, brightness: Brightness.light),
+      useMaterial3: true,
+    );
+    final darkTheme = ThemeData(
+      colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue, brightness: Brightness.dark),
+      useMaterial3: true,
+    );
+
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      themeMode: _themeMode, // ✅ Use the state here
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue, brightness: Brightness.light),
-        useMaterial3: true,
+      themeMode: settingsProvider.themeMode, // 6. Use theme from provider
+      theme: lightTheme.copyWith(
+        dropdownMenuTheme: DropdownMenuThemeData(
+          menuStyle: MenuStyle(
+            backgroundColor: WidgetStateProperty.all(lightTheme.colorScheme.surfaceContainer),
+            shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+          ),
+        ),
       ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue, brightness: Brightness.dark),
-        useMaterial3: true,
+      darkTheme: darkTheme.copyWith(
+        dropdownMenuTheme: DropdownMenuThemeData(
+          menuStyle: MenuStyle(
+            backgroundColor: WidgetStateProperty.all(darkTheme.colorScheme.surfaceContainer),
+            shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+          ),
+        ),
       ),
-      routerConfig: _router,
+      routerConfig: router,
     );
   }
 }

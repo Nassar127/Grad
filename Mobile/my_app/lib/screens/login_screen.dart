@@ -1,28 +1,25 @@
+// lib/screens/login_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:dio/dio.dart';
+import 'package:my_app/screens/signup_screen.dart';
 import '../main.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
-
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  bool _isLogin = true;
-  bool _loading = false;
-
-  String email = '';
+  String login = ''; // Can be email or phone
   String password = '';
-  String name = '';
+  bool _loading = false;
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
+    // ... UI remains largely the same, just change label and signup navigation
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -35,28 +32,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: ListView(
                   shrinkWrap: true,
                   children: [
+                    Text('Welcome back', textAlign: TextAlign.center, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 24),
-                    Icon(Icons.lock_outline, size: 48, color: cs.primary),
-                    const SizedBox(height: 16),
-                    Text(_isLogin ? 'Welcome back' : 'Create account',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 24),
-                    if (!_isLogin)
-                      TextFormField(
-                        decoration: const InputDecoration(labelText: 'Name'),
-                        onChanged: (v) => name = v.trim(),
-                        validator: (v) => _isLogin ? null : (v == null || v.isEmpty ? 'Required' : null),
-                        textInputAction: TextInputAction.next,
-                      ),
-                    const SizedBox(height: 12),
                     TextFormField(
-                      decoration: const InputDecoration(labelText: 'Email'),
-                      keyboardType: TextInputType.emailAddress,
-                      onChanged: (v) => email = v.trim(),
+                      decoration: const InputDecoration(labelText: 'Email or Phone Number'),
+                      onChanged: (v) => login = v.trim(),
                       validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
-                      textInputAction: TextInputAction.next,
-                      autofillHints: const [AutofillHints.email],
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
@@ -64,19 +45,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       obscureText: true,
                       onChanged: (v) => password = v,
                       validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
-                      autofillHints: const [AutofillHints.password],
                     ),
                     const SizedBox(height: 20),
                     FilledButton(
                       onPressed: _loading ? null : _submit,
-                      child: _loading
-                          ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                          : Text(_isLogin ? 'Login' : 'Sign Up'),
+                      child: _loading ? const CircularProgressIndicator() : const Text('Login'),
                     ),
                     const SizedBox(height: 12),
                     TextButton(
-                      onPressed: _loading ? null : () => setState(() => _isLogin = !_isLogin),
-                      child: Text(_isLogin ? "Don't have an account? Sign up" : "Already have an account? Log in"),
+                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignupScreen())),
+                      child: const Text("Don't have an account? Sign up"),
                     ),
                   ],
                 ),
@@ -92,37 +70,13 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
     try {
-      if (_isLogin) {
-        await authService.login(email, password);
-      } else {
-        await authService.signup(email, password, name);
-      }
-
-      if (!mounted) return;
-      context.go('/');
-
-    } on DioException catch (e) { // ✅ 2. Catch DioException specifically
-      if (!mounted) return;
-
-      String errorMessage = 'An unknown error occurred.';
-      // ✅ 3. Check for the 409 status code
-      if (e.response?.statusCode == 409) {
-        errorMessage = 'This email address is already in use.';
-      } else {
-        // You can add more checks here for other status codes, like 401 for bad passwords
-        errorMessage = 'Authentication failed. Please check your credentials.';
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
-      );
+      await authService.login(login, password);
+      if (mounted) context.go('/');
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An unexpected error occurred: $e')),
-      );
-    }
-    finally {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Login failed: $e')));
+      }
+    } finally {
       if (mounted) setState(() => _loading = false);
     }
   }

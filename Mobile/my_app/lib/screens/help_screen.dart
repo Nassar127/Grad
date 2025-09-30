@@ -1,4 +1,10 @@
+// lib/screens/help_screen.dart
+
 import 'package:flutter/material.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:go_router/go_router.dart';
+import 'package:my_app/main.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HelpScreen extends StatefulWidget {
   const HelpScreen({super.key});
@@ -7,81 +13,134 @@ class HelpScreen extends StatefulWidget {
 }
 
 class _HelpScreenState extends State<HelpScreen> {
-  final _formKey = GlobalKey<FormState>();
-  String name = '', email = '', message = '';
-
   final List<Map<String, String>> faqs = [
     {
-      'question': 'How do I reset my password?',
-      'answer': "Go to the login page and tap 'Forgot Password', then follow the email steps."
+      'question': 'How do the different AI modes work?',
+      'answer':
+      "You can switch between modes in the header. 'Medical Questions' is for general queries. 'Condition Explainer' provides detailed summaries of medical conditions. 'Study Recommender' suggests topics based on your conversations."
     },
     {
-      'question': 'What are the limitations of the free plan?',
-      'answer': 'Free plans include limited access to some features and lower usage limits.'
+      'question': 'Is my chat history private?',
+      'answer':
+      'Yes, your conversations are securely stored and are only accessible when you are logged into your account. We prioritize your privacy and data security.'
     },
     {
-      'question': 'How can I upgrade my subscription?',
-      'answer': 'Go to Settings > Subscription and choose a plan to upgrade.'
+      'question': 'Can I delete a chat conversation?',
+      'answer':
+      'Currently, chat deletion is available on the web version of the app. We are working on bringing this feature to the mobile app soon.'
     },
   ];
 
-  final List<Map<String, dynamic>> quickTips = [
-    {'icon': Icons.wifi, 'text': 'Check your internet connection'},
-    {'icon': Icons.restart_alt, 'text': 'Restart the app'},
-    {'icon': Icons.delete_outline, 'text': 'Clear app cache'},
-  ];
+  void _checkConnectivity() async {
+    final connectivityResult = await (Connectivity().checkConnectivity());
+    if (!mounted) return; // ✅ FIX: Check mounted *after* the await
 
-  @override
-  Widget build(BuildContext context) {
-    final tt = Theme.of(context).textTheme;
-    final cs = Theme.of(context).colorScheme;
+    String title;
+    String content;
+    IconData icon;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Help', style: TextStyle(fontWeight: FontWeight.bold)),
-        centerTitle: true,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text('Frequently Asked Questions', style: tt.titleMedium),
-          const SizedBox(height: 8),
-          ...faqs.map((faq) => _faqTile(context, faq['question']!, faq['answer']!)),
-          const SizedBox(height: 24),
-          Text('Contact Support', style: tt.titleMedium),
-          const SizedBox(height: 8),
-          _contactForm(context),
-          const SizedBox(height: 24),
-          Text('Quick Troubleshooting', style: tt.titleMedium),
-          const SizedBox(height: 8),
-          ...quickTips.map((tip) => ListTile(
-                leading: Icon(tip['icon'], color: cs.onSurfaceVariant),
-                title: Text(tip['text']),
-                onTap: () {},
-              )),
+    if (connectivityResult.contains(ConnectivityResult.mobile)) {
+      title = 'Connected';
+      content = 'You are connected to the internet via Mobile Data.';
+      icon = Icons.signal_cellular_alt;
+    } else if (connectivityResult.contains(ConnectivityResult.wifi)) {
+      title = 'Connected';
+      content = 'You are connected to the internet via Wi-Fi.';
+      icon = Icons.wifi;
+    } else {
+      title = 'No Connection';
+      content = 'No active network connection was detected.';
+      icon = Icons.signal_wifi_off;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: Icon(icon),
+        title: Text(title),
+        content: Text(content),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
         ],
       ),
     );
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Help & Support'),
+        centerTitle: true,
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _buildSectionTitle('Troubleshooting', context),
+          _buildActionTile(
+            icon: Icons.network_check,
+            title: 'Check Connection Status',
+            onTap: _checkConnectivity,
+          ),
+          _buildActionTile(
+            icon: Icons.logout,
+            title: 'Re-authenticate',
+            subtitle: 'Log out and log back in to refresh your session.',
+            onTap: () async {
+              // ✅ FIX: Handle async gap for navigation
+              final goRouter = GoRouter.of(context);
+              await authService.logout();
+              goRouter.go('/login');
+            },
+          ),
+          const SizedBox(height: 24),
+          _buildSectionTitle('Get in Touch', context),
+          _buildActionTile(
+            icon: Icons.email_outlined,
+            title: 'Email Support',
+            subtitle: 'medi.learn.v2@gmail.com',
+            onTap: () async {
+              final Uri emailUri = Uri(
+                scheme: 'mailto',
+                path: 'medi.learn.v2@gmail.com',
+                query: 'subject=${Uri.encodeComponent('MediLearn App Support')}',
+              );
+              if (await canLaunchUrl(emailUri)) {
+                await launchUrl(emailUri);
+              }
+            },
+          ),
+          const SizedBox(height: 24),
+          _buildSectionTitle('Frequently Asked Questions', context),
+          ...faqs.map((faq) => _faqTile(context, faq['question']!, faq['answer']!)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title, BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+    );
+  }
+
   Widget _faqTile(BuildContext context, String question, String answer) {
     final cs = Theme.of(context).colorScheme;
-    return Theme(
-      data: Theme.of(context).copyWith(
-        expansionTileTheme: ExpansionTileThemeData(
-          collapsedBackgroundColor: cs.surfaceContainerLowest,
-          backgroundColor: cs.surfaceContainerHighest,
-          collapsedIconColor: cs.onSurfaceVariant,
-          iconColor: cs.onSurfaceVariant,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: ExpansionTile(
         title: Text(question),
+        collapsedBackgroundColor: cs.surfaceContainer,
+        backgroundColor: cs.surfaceContainerHighest,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+            padding: const EdgeInsets.all(16.0),
             child: Text(answer, style: TextStyle(color: cs.onSurfaceVariant)),
           ),
         ],
@@ -89,54 +148,20 @@ class _HelpScreenState extends State<HelpScreen> {
     );
   }
 
-  Widget _contactForm(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        children: [
-          _inputField(label: 'Name', hint: 'Enter your name', onChanged: (v) => name = v),
-          const SizedBox(height: 8),
-          _inputField(label: 'Email', hint: 'Enter your email', onChanged: (v) => email = v),
-          const SizedBox(height: 8),
-          _inputField(label: 'Message', hint: 'Enter your message', maxLines: 4, onChanged: (v) => message = v),
-          const SizedBox(height: 12),
-          Align(
-            alignment: Alignment.centerRight,
-            child: ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Message submitted!')));
-                }
-              },
-              child: const Text('Submit'),
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget _inputField({
-    required String hint,
-    required String label,
-    required Function(String) onChanged,
-    int maxLines = 1,
+  Widget _buildActionTile({
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    required VoidCallback onTap,
   }) {
-    // final cs = Theme.of(context).colorScheme; // ✅ FIXED: Removed unused variable
-    return TextFormField(
-      onChanged: onChanged,
-      maxLines: maxLines,
-      validator: (val) => val == null || val.isEmpty ? 'Required' : null,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        filled: true,
-        // fillColor: cs.surfaceContainerHighest, // This variable was removed. 
-        // We'll let the default theme handle the color.
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4.0),
+      child: ListTile(
+        leading: Icon(icon),
+        title: Text(title),
+        subtitle: subtitle != null ? Text(subtitle) : null,
+        onTap: onTap,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

@@ -1,127 +1,190 @@
+// lib/screens/settings_screen.dart
+
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:my_app/main.dart';
+import 'package:my_app/screens/billing_screen.dart';
+import 'package:my_app/screens/help_screen.dart'; // ✅ 3. Import the HelpScreen
+import 'package:my_app/screens/profile_settings_screen.dart';
+import 'package:provider/provider.dart';
+import '../core/string_extension.dart';
+import '../features/settings_provider.dart';
 
 class SettingsScreen extends StatelessWidget {
-  final ThemeMode themeMode;
-  final ValueChanged<ThemeMode> onThemeChanged;
-
-  const SettingsScreen({
-    super.key,
-    required this.themeMode,
-    required this.onThemeChanged,
-  });
-
-  String get _themeLabel {
-    switch (themeMode) {
-      case ThemeMode.light:
-        return 'Light';
-      case ThemeMode.dark:
-        return 'Dark';
-      case ThemeMode.system:
-        return 'System';
-    }
-  }
+  const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings', style: TextStyle(fontWeight: FontWeight.bold)),
-        centerTitle: true,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _sectionTitle(context, 'Preferences'),
-          SwitchListTile(
-            title: const Text('Notifications'),
-            subtitle: const Text('Receive notifications for new messages and updates'),
-            value: false,
-            onChanged: (_) {},
+    return Consumer<SettingsProvider>(
+      builder: (context, settings, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Settings'),
+            centerTitle: true,
           ),
-          _tile(
-            title: 'Language',
-            subtitle: 'Choose your preferred language',
-            trailing: 'English',
-            onTap: () {},
-          ),
-          _tile(
-            title: 'Theme',
-            subtitle: 'Switch between light and dark themes',
-            trailing: _themeLabel, // shows current mode
-            onTap: () => _showThemePicker(context),
-          ),
-
-          const SizedBox(height: 24),
-          _sectionTitle(context, 'Profile'),
-          _tile(
-            title: 'Profile Info',
-            subtitle: 'Update your profile information',
-            onTap: () {},
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _sectionTitle(BuildContext context, String title) => Padding(
-    padding: const EdgeInsets.only(bottom: 8.0, top: 16.0),
-    child: Text(title, style: Theme.of(context).textTheme.titleMedium),
-  );
-
-  Widget _tile({
-    required String title,
-    required String subtitle,
-    String? trailing,
-    VoidCallback? onTap,
-  }) {
-    return ListTile(
-      onTap: onTap,
-      title: Text(title),
-      subtitle: Text(subtitle),
-      trailing: trailing != null ? Text(trailing) : const Icon(Icons.arrow_forward_ios, size: 16),
-    );
-  }
-
-  void _showThemePicker(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      showDragHandle: true,
-      builder: (ctx) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+          body: ListView(
+            padding: const EdgeInsets.all(16),
             children: [
-              RadioListTile<ThemeMode>(
-                title: const Text('Light'),
-                value: ThemeMode.light,
-                groupValue: themeMode,
-                onChanged: (val) {
-                  if (val != null) onThemeChanged(val);
-                  Navigator.pop(ctx);
-                },
+              _SettingsHeader(user: settings.user),
+              const SizedBox(height: 16),
+
+              _SettingsSection(
+                tiles: [
+                  _SettingsTile(
+                    icon: Icons.person_outline,
+                    title: 'Profile',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ProfileSettingsScreen()),
+                    ),
+                  ),
+                  _SettingsTile(
+                    icon: Icons.receipt_long_outlined,
+                    title: 'Billing',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const BillingScreen()),
+                    ),
+                  ),
+                ],
               ),
-              RadioListTile<ThemeMode>(
-                title: const Text('Dark'),
-                value: ThemeMode.dark,
-                groupValue: themeMode,
-                onChanged: (val) {
-                  if (val != null) onThemeChanged(val);
-                  Navigator.pop(ctx);
-                },
+
+              // ✅ 1. REMOVED: The entire "Permissions" section is gone.
+
+              _SettingsSection(
+                tiles: [
+                  _SettingsTile(
+                    icon: Icons.brightness_6_outlined,
+                    title: 'Theme',
+                    trailing: Text(settings.themeMode.name.capitalize()),
+                    onTap: () => _showThemePicker(context, settings),
+                  ),
+                  // ✅ 2. HIDDEN: The Language tile is commented out for later use.
+                  // _SettingsTile(
+                  //   icon: Icons.language_outlined,
+                  //   title: 'Language',
+                  //   trailing: Text(settings.locale.languageCode == 'ar' ? 'العربية' : 'English'),
+                  //   onTap: () => _showLanguagePicker(context, settings),
+                  // ),
+                ],
               ),
-              RadioListTile<ThemeMode>(
-                title: const Text('System'),
-                value: ThemeMode.system,
-                groupValue: themeMode,
-                onChanged: (val) {
-                  if (val != null) onThemeChanged(val);
-                  Navigator.pop(ctx);
-                },
+              _SettingsSection(
+                tiles: [
+                  _SettingsTile(
+                    icon: Icons.help_outline,
+                    title: 'Help',
+                    // ✅ 3. FIXED: The Help button now navigates to the HelpScreen.
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const HelpScreen()),
+                    ),
+                  ),
+                  _SettingsTile(
+                    icon: Icons.logout,
+                    title: 'Log out',
+                    onTap: () async {
+                      final goRouter = GoRouter.of(context);
+                      await authService.logout();
+                      goRouter.go('/login');
+                    },
+                  ),
+                ],
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  // ... dialog and picker functions remain the same ...
+  void _showThemePicker(BuildContext context, SettingsProvider settings) {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          RadioListTile<ThemeMode>(
+            title: const Text('Light'),
+            value: ThemeMode.light,
+            groupValue: settings.themeMode,
+            onChanged: (val) {
+              settings.updateThemeMode(val!);
+              Navigator.pop(ctx);
+            },
+          ),
+          RadioListTile<ThemeMode>(
+            title: const Text('Dark'),
+            value: ThemeMode.dark,
+            groupValue: settings.themeMode,
+            onChanged: (val) {
+              settings.updateThemeMode(val!);
+              Navigator.pop(ctx);
+            },
+          ),
+          RadioListTile<ThemeMode>(
+            title: const Text('System'),
+            value: ThemeMode.system,
+            groupValue: settings.themeMode,
+            onChanged: (val) {
+              settings.updateThemeMode(val!);
+              Navigator.pop(ctx);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SettingsHeader extends StatelessWidget {
+  final UserModel? user;
+  const _SettingsHeader({this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    if (user == null) {
+      return const SizedBox(height: 50);
+    }
+    return Center(
+      child: Column(
+        children: [
+          Text(user!.email, style: Theme.of(context).textTheme.bodyLarge),
+          // ✅ 4. REMOVED: The "Viewer" Chip widget is gone.
+        ],
+      ),
+    );
+  }
+}
+
+class _SettingsSection extends StatelessWidget {
+  final List<_SettingsTile> tiles;
+  const _SettingsSection({required this.tiles});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(children: tiles),
+    );
+  }
+}
+
+class _SettingsTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final Widget? trailing;
+  final VoidCallback onTap;
+
+  const _SettingsTile({required this.icon, required this.title, this.trailing, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(title),
+      trailing: trailing,
+      onTap: onTap,
     );
   }
 }

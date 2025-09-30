@@ -1,11 +1,14 @@
+// src/routes/chats.ts
+
 import { Router } from 'express';
-import { PrismaClient, Sender } from '@prisma/client';
+import { PrismaClient, Sender, ChatMode } from '@prisma/client'; // Import ChatMode
 import { requireAuth } from '../mw';
 import { ENV } from '../env';
 
 const prisma = new PrismaClient();
 const router = Router();
 
+// ... (GET / and POST / routes are unchanged) ...
 router.use(requireAuth);
 
 router.get('/', async (req, res) => {
@@ -30,6 +33,7 @@ router.post('/', async (req, res) => {
   res.json({ chat });
 });
 
+// ✅ MODIFIED: This route now returns the parent chat object
 router.get('/:id/messages', async (req, res) => {
   const userId = (req as any).user.id as number;
   const chatId = Number(req.params.id);
@@ -46,17 +50,77 @@ router.get('/:id/messages', async (req, res) => {
     ...(cursor ? { cursor, skip: 1 } : {}),
   });
 
-  res.json({ items: msgs, nextCursor: msgs.length > 0 ? msgs[msgs.length - 1]!.id : null });
+  // Return the chat object along with the messages
+  res.json({ chat, items: msgs, nextCursor: msgs.length > 0 ? msgs[msgs.length - 1]!.id : null });
 });
 
+// ... (GET /:id/recommendations is unchanged) ...
+router.get('/:id/recommendations', async (req, res) => {
+  const userId = (req as any).user.id as number;
+  const chatId = Number(req.params.id);
+
+  // 1. Verify chat ownership and get the last 6 messages for context
+  const messages = await prisma.message.findMany({
+    where: {
+      chatId: chatId,
+      chat: {
+        userId: userId,
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 6,
+  });
+
+  if (messages.length < 2) {
+    return res.json({ recommendations: [] }); // Not enough context yet
+  }
+
+  // 2. Create a prompt for the AI
+  const conversationHistory = messages.reverse().map(m => `${m.sender}: ${m.text}`).join('\n');
+  const prompt = `Based on the following medical conversation, suggest three related topics for further study. Respond ONLY with a simple bulleted list in Markdown, with no introduction, conclusion, or extra commentary.\n\n---\n\nConversation:\n${conversationHistory}`;
+
+  try {
+    // 3. Call the Gemini API
+    const r = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${ENV.GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+      }
+    );
+    const data = await r.json();
+    if (!r.ok) throw new Error(JSON.stringify(data));
+
+    const reply = data.candidates[0].content.parts[0].text.trim();
+    
+    // 4. Parse the Markdown list into a clean array of strings
+    const recommendations = reply.split('\n')
+      .map((line: string) => line.replace(/_?\*?_?/g, '').trim()) // Remove markdown characters
+      .filter((line: string) => line.length > 0); // Remove any empty lines
+
+    res.json({ recommendations });
+
+  } catch (e) {
+    console.error('Failed to get recommendations:', e);
+    res.status(500).json({ error: 'Could not generate recommendations.' });
+  }
+});
+
+
+// ✅ MODIFIED: This route now saves the chat mode on the first message
 router.post('/:id/messages', async (req, res) => {
   const userId = (req as any).user.id as number;
   const chatId = Number(req.params.id);
-  const { text } = req.body ?? {};
+  const { text, mode } = req.body ?? {};
   if (!text) return res.status(400).json({ error: 'text required' });
 
   const chat = await prisma.chat.findFirst({ where: { id: chatId, userId } });
   if (!chat) return res.status(404).json({ error: 'Chat not found' });
+
+  // Determine if this is the first message from the user
+  const messageCount = await prisma.message.count({ where: { chatId } });
+  const isFirstMessage = messageCount === 0;
 
   const userMsg = await prisma.message.create({
     data: { chatId, text, sender: 'USER' as Sender },
@@ -64,44 +128,70 @@ router.post('/:id/messages', async (req, res) => {
 
   let newChatTitle = chat.title;
   const defaultTitles = ['New Chat', 'New Web Chat', 'New Mobile Chat'];
-  
   if (!chat.title || defaultTitles.includes(chat.title)) {
     newChatTitle = text.length > 40 ? text.substring(0, 40) + '...' : text;
   }
   
+  // Prepare AI prompt
+  let prompt = text;
+  if (mode === 'conditionExplainer') {
+    prompt = `Please act as a medical tutor. Provide a clear, structured explanation of the following medical condition: "${text}". Organize the response using Markdown with these exact sections: ## Overview, ## Key Symptoms, ## Common Causes, and ## Treatment Options.`;
+  }
+
+  // Fetch AI response
   let botText = 'Sorry, I could not generate a response.';
-  try {
+  // ... (Gemini API call logic remains the same)
+    try {
     const r = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${ENV.GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text }] }] }),
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
       }
     );
     const data = await r.json();
-    const parts = data?.candidates?.[0]?.content?.parts;
+
+    if (!r.ok || !data?.candidates?.[0]?.content?.parts) {
+      console.error('Gemini API Error:', JSON.stringify(data, null, 2));
+      throw new Error('Invalid response structure from Gemini API');
+    }
+
+    const parts = data.candidates[0].content.parts;
     const reply = Array.isArray(parts) ? parts.map((p: any) => p.text).join('\n').trim() : '';
     if (reply) botText = reply;
   } catch (e) {
-    console.error('Gemini error', e);
+    console.error('Gemini call failed:', e);
   }
+
 
   const botMsg = await prisma.message.create({
     data: { chatId, text: botText, sender: 'BOT' as Sender },
   });
 
+  // If it's the first message, lock in the chat's mode
+  const chatUpdateData: any = { 
+    updatedAt: new Date(),
+    title: newChatTitle,
+  };
+  if (isFirstMessage && mode) {
+    // Convert client-side name to Prisma enum name (e.g., medicalQuestions -> MedicalQuestions)
+    const prismaMode = (mode.charAt(0).toUpperCase() + mode.slice(1)) as ChatMode;
+    if (Object.values(ChatMode).includes(prismaMode)) {
+      chatUpdateData.mode = prismaMode;
+    }
+  }
+
   await prisma.chat.update({
     where: { id: chatId },
-    data: { 
-      updatedAt: new Date(),
-      title: newChatTitle
-    },
+    data: chatUpdateData,
   });
 
   res.json({ userMessage: userMsg, botMessage: botMsg });
 });
 
+
+// ... (DELETE /:id is unchanged) ...
 router.delete('/:id', async (req, res) => {
   const userId = (req as any).user.id as number;
   const chatId = Number(req.params.id);
@@ -119,5 +209,6 @@ router.delete('/:id', async (req, res) => {
     res.status(404).json({ error: 'Chat not found or you do not have permission to delete it.' });
   }
 });
+
 
 export default router;

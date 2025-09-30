@@ -29,5 +29,7 @@
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.2"
   },
-  "engines": { "node": ">=18" }
+  "engines": {
+    "node": ">=18"
+  }
 }

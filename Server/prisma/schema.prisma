@@ -1,3 +1,5 @@
+// prisma/schema.prisma
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -21,9 +23,16 @@ enum Sender {
   BOT
 }
 
+enum ChatMode {
+  MedicalQuestions
+  ConditionExplainer
+  StudyRecommender
+}
+
 model User {
   id           Int       @id @default(autoincrement())
-  email        String    @unique
+  email        String?   @unique // ✅ Changed to optional
+  phone        String?   @unique // ✅ Added optional phone field
   passwordHash String
   name         String?
   role         Role      @default(viewer)
@@ -32,6 +41,7 @@ model User {
   chats        Chat[]
   sessions     Session[]
 }
+
 
 model Session {
   id           Int       @id @default(autoincrement())
@@ -54,6 +64,7 @@ model Chat {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   archived  Boolean   @default(false)
+  mode      ChatMode  @default(MedicalQuestions)
 
   @@index([userId, createdAt])
 }
