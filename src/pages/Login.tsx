@@ -1,10 +1,14 @@
+// Login.tsx
+
 import React, { useState } from 'react';
 import { api } from '../lib/api';
 import { userStore } from '../lib/auth';
 
 const Login: React.FC = () => {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const [loginIdentifier, setLoginIdentifier] = useState(''); // ✅ State for email or phone
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState(''); // ✅ State for phone number
   const [name, setName]   = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
@@ -16,9 +20,11 @@ const Login: React.FC = () => {
     setBusy(true);
     try {
       if (mode === 'login') {
-        await api.login(email.trim(), password);
+        // ✅ Use the generic login identifier
+        await api.login(loginIdentifier.trim(), password);
       } else {
-        await api.signup(email.trim(), password, name.trim() || undefined);
+        // ✅ Pass email, phone, password, and name to signup
+        await api.signup(email.trim(), phone.trim(), password, name.trim() || undefined);
       }
       window.location.href = '/'; 
     } catch (err: any) {
@@ -40,7 +46,7 @@ const Login: React.FC = () => {
           <p className="text-sm text-gray-500 mb-6">
             {mode === 'login'
               ? 'Use your MediLearn account to continue.'
-              : 'Sign up to save your chat history across devices.'}
+              : 'Sign up with your email or phone number.'}
           </p>
 
           {u ? (
@@ -58,7 +64,7 @@ const Login: React.FC = () => {
           <form onSubmit={submit} className="space-y-4">
             {mode === 'signup' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name (optional)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                 <input
                   value={name}
                   onChange={e => setName(e.target.value)}
@@ -68,17 +74,41 @@ const Login: React.FC = () => {
               </div>
             )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-                className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
-                placeholder="you@example.com"
-              />
-            </div>
+            {mode === 'login' ? (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email or Phone</label>
+                <input
+                  value={loginIdentifier}
+                  onChange={e => setLoginIdentifier(e.target.value)}
+                  required
+                  className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+                  placeholder="Sign in using Email or Phone number"
+                />
+              </div>
+            ) : (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+                    placeholder="you@example.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={e => setPhone(e.target.value)}
+                    className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+                    placeholder="Your phone number"
+                  />
+                </div>
+              </>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
