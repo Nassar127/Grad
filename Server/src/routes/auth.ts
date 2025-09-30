@@ -108,7 +108,11 @@ router.post('/refresh', async (req, res) => {
     return res.status(401).json({ error: 'Invalid refresh token' });
 
   const payload = verifyRefresh(refreshToken);
-  const newRefresh = signRefresh({ id: payload.id, role: payload.role });
+  
+  // ✅ FIXED: Ensure payload.role is a string before passing to signRefresh
+  const roleString = typeof payload.role === 'string' ? payload.role : '';
+  const newRefresh = signRefresh({ id: payload.id, role: roleString });
+
   await prisma.$transaction([
     prisma.session.update({ where: { refreshToken }, data: { revokedAt: new Date() } }),
     prisma.session.create({
@@ -122,10 +126,11 @@ router.post('/refresh', async (req, res) => {
     })
   ]);
 
-  const accessToken = signAccess({ id: payload.id, role: payload.role });
+  const accessToken = signAccess({ id: payload.id, role: roleString });
   res.json({ accessToken, refreshToken: newRefresh });
 });
 
+// ... rest of the file is the same
 router.post('/logout', async (req, res) => {
   const { refreshToken } = req.body ?? {};
   if (refreshToken) {
@@ -188,7 +193,6 @@ router.post('/me/change-password', async (req, res) => {
 
   res.json({ message: 'Password updated successfully' });
 });
-
 
 
 export default router;
