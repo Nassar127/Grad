@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:my_app/screens/signup_screen.dart';
+import 'package:provider/provider.dart';
+import '../features/settings_provider.dart';
 import '../main.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -13,13 +15,12 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  String login = ''; // Can be email or phone
+  String login = '';
   String password = '';
   bool _loading = false;
 
   @override
   Widget build(BuildContext context) {
-    // ... UI remains largely the same, just change label and signup navigation
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -69,15 +70,26 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
+
+    // ✅ FIX: Capture context-dependent variables before the async gap
+    final settingsProvider = Provider.of<SettingsProvider>(context, listen: false);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
+
     try {
       await authService.login(login, password);
-      if (mounted) context.go('/');
+
+      // Refresh user data before navigating
+      await settingsProvider.loadUser();
+
+      router.go('/');
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Login failed: $e')));
-      }
+      scaffoldMessenger.showSnackBar(SnackBar(content: Text('Login failed: $e')));
     } finally {
-      if (mounted) setState(() => _loading = false);
+      // Check if the widget is still in the tree before calling setState
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 }

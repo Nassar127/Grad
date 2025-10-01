@@ -8,7 +8,6 @@ import { ENV } from '../env';
 const prisma = new PrismaClient();
 const router = Router();
 
-// ... (GET / and POST / routes are unchanged) ...
 router.use(requireAuth);
 
 router.get('/', async (req, res) => {
@@ -108,7 +107,6 @@ router.get('/:id/recommendations', async (req, res) => {
 });
 
 
-// ✅ MODIFIED: This route now saves the chat mode on the first message
 router.post('/:id/messages', async (req, res) => {
   const userId = (req as any).user.id as number;
   const chatId = Number(req.params.id);
@@ -118,7 +116,6 @@ router.post('/:id/messages', async (req, res) => {
   const chat = await prisma.chat.findFirst({ where: { id: chatId, userId } });
   if (!chat) return res.status(404).json({ error: 'Chat not found' });
 
-  // Determine if this is the first message from the user
   const messageCount = await prisma.message.count({ where: { chatId } });
   const isFirstMessage = messageCount === 0;
 
@@ -132,22 +129,39 @@ router.post('/:id/messages', async (req, res) => {
     newChatTitle = text.length > 40 ? text.substring(0, 40) + '...' : text;
   }
   
-  // Prepare AI prompt
-  let prompt = text;
-  if (mode === 'conditionExplainer') {
-    prompt = `Please act as a medical tutor. Provide a clear, structured explanation of the following medical condition: "${text}". Organize the response using Markdown with these exact sections: ## Overview, ## Key Symptoms, ## Common Causes, and ## Treatment Options.`;
-  }
+  // ✅ 1. FETCH HISTORY: Get the last 8 messages for context
+  const recentMessages = await prisma.message.findMany({
+    where: { chatId },
+    orderBy: { createdAt: 'desc' },
+    take: 8,
+  });
 
-  // Fetch AI response
+  // ✅ 2. FORMAT HISTORY: Prepare the history for the Gemini API
+  const history = recentMessages
+    .reverse()
+    .map(msg => ({
+      role: msg.sender === 'USER' ? 'user' : 'model',
+      parts: [{ text: msg.text }],
+    }));
+
+  
+  let currentPromptText = text;
+  if (mode === 'conditionExplainer') {
+    currentPromptText = `Please act as a medical tutor. Provide a clear, structured explanation of the following medical condition: "${text}". Organize the response using Markdown with these exact sections: ## Overview, ## Key Symptoms, ## Common Causes, and ## Treatment Options.`;
+  }
+  
+  // Note: We don't need to add the current text to the history array because
+  // the 'recentMessages' query above already includes the message we just saved.
+
   let botText = 'Sorry, I could not generate a response.';
-  // ... (Gemini API call logic remains the same)
-    try {
+  try {
     const r = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${ENV.GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+        // ✅ 3. SEND HISTORY: Send the full conversation context to the API
+        body: JSON.stringify({ contents: history }),
       }
     );
     const data = await r.json();
@@ -164,18 +178,15 @@ router.post('/:id/messages', async (req, res) => {
     console.error('Gemini call failed:', e);
   }
 
-
   const botMsg = await prisma.message.create({
     data: { chatId, text: botText, sender: 'BOT' as Sender },
   });
 
-  // If it's the first message, lock in the chat's mode
   const chatUpdateData: any = { 
     updatedAt: new Date(),
     title: newChatTitle,
   };
   if (isFirstMessage && mode) {
-    // Convert client-side name to Prisma enum name (e.g., medicalQuestions -> MedicalQuestions)
     const prismaMode = (mode.charAt(0).toUpperCase() + mode.slice(1)) as ChatMode;
     if (Object.values(ChatMode).includes(prismaMode)) {
       chatUpdateData.mode = prismaMode;
