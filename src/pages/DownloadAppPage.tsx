@@ -2,22 +2,10 @@ import React, { useState } from 'react';
 import './DownloadAppPage.css';
 
 const screenshots = [
-  {
-    src: '/assets/ss1.png',
-    title: 'Chat history screen',
-  },
-  {
-    src: '/assets/ss2.png',
-    title: 'Chatbot feature',
-  },
-  {
-    src: '/assets/ss3.png',
-    title: 'Settings screen',
-  },
-  {
-    src: '/assets/ss4.png',
-    title: 'Help screen',
-  },
+  { src: '/assets/ss1.jpg', title: 'Chat history screen' },
+  { src: '/assets/ss2.jpg', title: 'Chatbot feature' },
+  { src: '/assets/ss3.jpg', title: 'Settings screen' },
+  { src: '/assets/ss4.jpg', title: 'Help screen' },
 ];
 
 const DownloadAppPage: React.FC = () => {
@@ -43,11 +31,9 @@ const DownloadAppPage: React.FC = () => {
       </section>
 
       <section className="download-section">
+        {/* ✅ MODIFIED: The App Store link is removed, and the Google Play link is updated */}
         <div className="download-links">
-          <a href="https://maiegypt.my.canva.site/coming-soooon" target="_blank" rel="noopener noreferrer">
-            <img src="/assets/appstore-badge.png" alt="Download on the App Store" className="store-badge" />
-          </a>
-          <a href="https://maiegypt.my.canva.site/coming-soooon" target="_blank" rel="noopener noreferrer">
+          <a href="https://www.mediafire.com/file/nnymna882imk8np/app-release.apk/file" target="_blank" rel="noopener noreferrer">
             <img src="/assets/playstore-badge.png" alt="Get it on Google Play" className="store-badge" />
           </a>
         </div>
@@ -74,7 +60,7 @@ const DownloadAppPage: React.FC = () => {
           <div className="image-lightbox" onClick={() => setPreviewIndex(null)}>
             <div
               className="image-lightbox-content"
-              onClick={(e) => e.stopPropagation()} // prevent click from closing lightbox
+              onClick={(e) => e.stopPropagation()}
             >
               <button className="lightbox-arrow left" onClick={prevImage}>
                 &lt;
@@ -93,7 +79,6 @@ const DownloadAppPage: React.FC = () => {
             </div>
           </div>
         )}
-
       </section>
 
       <section className="features">
