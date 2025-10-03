@@ -32,9 +32,9 @@ class _SignupScreenState extends State<SignupScreen> {
           children: [
             TextFormField(decoration: const InputDecoration(labelText: 'Name'), onChanged: (v) => name = v.trim()),
             const SizedBox(height: 12),
-            TextFormField(decoration: const InputDecoration(labelText: 'Email (Optional)'), onChanged: (v) => email = v.trim()),
+            TextFormField(decoration: const InputDecoration(labelText: 'Email'), onChanged: (v) => email = v.trim()),
             const SizedBox(height: 12),
-            TextFormField(decoration: const InputDecoration(labelText: 'Phone (Optional)'), onChanged: (v) => phone = v.trim()),
+            TextFormField(decoration: const InputDecoration(labelText: 'Phone Number'), onChanged: (v) => phone = v.trim()),
             const SizedBox(height: 12),
             TextFormField(decoration: const InputDecoration(labelText: 'Password'), obscureText: true, onChanged: (v) => password = v, validator: (v) => (v == null || v.isEmpty) ? 'Required' : null),
             const SizedBox(height: 20),

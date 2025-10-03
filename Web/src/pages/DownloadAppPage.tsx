@@ -33,7 +33,7 @@ const DownloadAppPage: React.FC = () => {
       <section className="download-section">
         {/* ✅ MODIFIED: The App Store link is removed, and the Google Play link is updated */}
         <div className="download-links">
-          <a href="https://www.mediafire.com/file/nnymna882imk8np/app-release.apk/file" target="_blank" rel="noopener noreferrer">
+          <a href="https://www.mediafire.com/file/3eswj94re6zkaj1/app-release.apk/file" target="_blank" rel="noopener noreferrer">
             <img src="/assets/playstore-badge.png" alt="Get it on Google Play" className="store-badge" />
           </a>
         </div>
